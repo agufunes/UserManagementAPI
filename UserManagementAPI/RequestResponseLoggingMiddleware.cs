@@ -42,12 +42,13 @@ public class RequestResponseLoggingMiddleware
         request.EnableBuffering();
         var body = request.Body;
 
-        var buffer = new byte[Convert.ToInt32(request.ContentLength)];
-        await request.Body.ReadAsync(buffer, 0, buffer.Length);
-        var bodyAsText = Encoding.UTF8.GetString(buffer);
-        request.Body = body;
+        using (var reader = new StreamReader(body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true))
+        {
+            var bodyAsText = await reader.ReadToEndAsync();
+            request.Body.Position = 0;
 
-        return $"{request.Scheme} {request.Host}{request.Path} {request.QueryString} {bodyAsText}";
+            return $"{request.Scheme} {request.Host}{request.Path} {request.QueryString} {bodyAsText}";
+        }
     }
 
     private async Task<string> FormatResponse(HttpResponse response)

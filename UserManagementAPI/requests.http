@@ -12,7 +12,7 @@ Content-Type: application/json
 
 {
   "id": 1,
-"name": "John Doe",
+  "name": "John Doe",
   "email": "john.doe@example.com"
 }
 
