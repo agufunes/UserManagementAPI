@@ -12,11 +12,28 @@ Content-Type: application/json
 
 {
   "id": 1,
-  "name": "John Doe",
+"name": "John Doe",
   "email": "john.doe@example.com"
 }
 
-### Update an existing user's details
+### Add a new user - error 1
+POST http://localhost:5200/users
+Content-Type: application/json
+
+{
+  "id": 1,
+  "email": "john.do"
+}
+
+### Add a new user
+POST http://localhost:5200/users
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "John Doe",
+  "email": "john.doe@example.com"
+}### Update an existing user's details
 PUT http://localhost:5200/users/1
 Content-Type: application/json
 

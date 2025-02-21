@@ -23,3 +23,10 @@
 /Users/agustinfunes/Dev/repos/net/UserManagementAPI/UserManagementAPI/obj/Debug/net8.0/UserManagementAPI.pdb
 /Users/agustinfunes/Dev/repos/net/UserManagementAPI/UserManagementAPI/obj/Debug/net8.0/UserManagementAPI.genruntimeconfig.cache
 /Users/agustinfunes/Dev/repos/net/UserManagementAPI/UserManagementAPI/obj/Debug/net8.0/ref/UserManagementAPI.dll
+/Users/agustinfunes/Dev/repos/net/UserManagementAPI/UserManagementAPI/bin/Debug/net8.0/FluentValidation.dll
+/Users/agustinfunes/Dev/repos/net/UserManagementAPI/UserManagementAPI/bin/Debug/net8.0/FluentValidation.AspNetCore.dll
+/Users/agustinfunes/Dev/repos/net/UserManagementAPI/UserManagementAPI/bin/Debug/net8.0/FluentValidation.DependencyInjectionExtensions.dll
+/Users/agustinfunes/Dev/repos/net/UserManagementAPI/UserManagementAPI/obj/Debug/net8.0/UserManagementAPI.csproj.AssemblyReference.cache
+/Users/agustinfunes/Dev/repos/net/UserManagementAPI/UserManagementAPI/obj/Debug/net8.0/UserManagementAPI.MvcApplicationPartsAssemblyInfo.cs
+/Users/agustinfunes/Dev/repos/net/UserManagementAPI/UserManagementAPI/obj/Debug/net8.0/UserManagementAPI.sourcelink.json
+/Users/agustinfunes/Dev/repos/net/UserManagementAPI/UserManagementAPI/obj/Debug/net8.0/UserMana.72BC9F28.Up2Date
