@@ -24,48 +24,83 @@ app.MapGet("/", () => "Root");
 
 app.MapGet("/users", async (IUserRepository repo, int page = 1, int pageSize = 10) =>
 {
-    var users = await repo.GetAllUsersAsync(page, pageSize);
-    return Results.Ok(users);
+    try
+    {
+        var users = await repo.GetAllUsersAsync(page, pageSize);
+        return Results.Ok(users);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(detail: ex.Message, statusCode: 500);
+    }
 });
 
 app.MapGet("/users/{id}", async (int id, IUserRepository repo) => 
 {
-    var user = await repo.GetUserByIdAsync(id);
-    return user is not null ? Results.Ok(user) : Results.NotFound();
+    try
+    {
+        var user = await repo.GetUserByIdAsync(id);
+        return user is not null ? Results.Ok(user) : Results.NotFound();
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(detail: ex.Message, statusCode: 500);
+    }
 });
 
 app.MapPost("/users", async (User user, IUserRepository repo, IValidator<User> validator) => 
 {
-    var validationResult = await validator.ValidateAsync(user);
-    if (!validationResult.IsValid)
+    try
     {
-        return Results.BadRequest(validationResult.Errors);
+        var validationResult = await validator.ValidateAsync(user);
+        if (!validationResult.IsValid)
+        {
+            return Results.BadRequest(validationResult.Errors);
+        }
+        await repo.AddUserAsync(user);
+        return Results.Created($"/users/{user.Id}", user);
     }
-    await repo.AddUserAsync(user);
-    return Results.Created($"/users/{user.Id}", user);
+    catch (Exception ex)
+    {
+        return Results.Problem(detail: ex.Message, statusCode: 500);
+    }
 });
 
 app.MapPut("/users/{id}", async (int id, User updatedUser, IUserRepository repo, IValidator<User> validator) => 
 {
-    var user = await repo.GetUserByIdAsync(id);
-    if (user is null) return Results.NotFound();
-
-    var validationResult = await validator.ValidateAsync(updatedUser);
-    if (!validationResult.IsValid)
+    try
     {
-        return Results.BadRequest(validationResult.Errors);
-    }
+        var user = await repo.GetUserByIdAsync(id);
+        if (user is null) return Results.NotFound();
 
-    await repo.UpdateUserAsync(id, updatedUser);
-    return Results.NoContent();
+        var validationResult = await validator.ValidateAsync(updatedUser);
+        if (!validationResult.IsValid)
+        {
+            return Results.BadRequest(validationResult.Errors);
+        }
+
+        await repo.UpdateUserAsync(id, updatedUser);
+        return Results.NoContent();
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(detail: ex.Message, statusCode: 500);
+    }
 });
 
 app.MapDelete("/users/{id}", async (int id, IUserRepository repo) => 
 {
-    var user = await repo.GetUserByIdAsync(id);
-    if (user is null) return Results.NotFound();
-    await repo.DeleteUserAsync(id);
-    return Results.NoContent();
+    try
+    {
+        var user = await repo.GetUserByIdAsync(id);
+        if (user is null) return Results.NotFound();
+        await repo.DeleteUserAsync(id);
+        return Results.NoContent();
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(detail: ex.Message, statusCode: 500);
+    }
 });
 
 app.Map("/error", (HttpContext context) =>
