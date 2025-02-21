@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Diagnostics;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,13 +17,20 @@ builder.Services.AddFluentValidationAutoValidation();
 
 var app = builder.Build();
 
+// Global exception handling middleware
+app.UseExceptionHandler("/error");
+
 app.MapGet("/", () => "Root");
 
-app.MapGet("/users", (IUserRepository repo) => repo.GetAllUsers());
-
-app.MapGet("/users/{id}", (int id, IUserRepository repo) => 
+app.MapGet("/users", async (IUserRepository repo, int page = 1, int pageSize = 10) =>
 {
-    var user = repo.GetUserById(id);
+    var users = await repo.GetAllUsersAsync(page, pageSize);
+    return Results.Ok(users);
+});
+
+app.MapGet("/users/{id}", async (int id, IUserRepository repo) => 
+{
+    var user = await repo.GetUserByIdAsync(id);
     return user is not null ? Results.Ok(user) : Results.NotFound();
 });
 
@@ -32,13 +41,13 @@ app.MapPost("/users", async (User user, IUserRepository repo, IValidator<User> v
     {
         return Results.BadRequest(validationResult.Errors);
     }
-    repo.AddUser(user);
+    await repo.AddUserAsync(user);
     return Results.Created($"/users/{user.Id}", user);
 });
 
 app.MapPut("/users/{id}", async (int id, User updatedUser, IUserRepository repo, IValidator<User> validator) => 
 {
-    var user = repo.GetUserById(id);
+    var user = await repo.GetUserByIdAsync(id);
     if (user is null) return Results.NotFound();
 
     var validationResult = await validator.ValidateAsync(updatedUser);
@@ -47,16 +56,22 @@ app.MapPut("/users/{id}", async (int id, User updatedUser, IUserRepository repo,
         return Results.BadRequest(validationResult.Errors);
     }
 
-    repo.UpdateUser(id, updatedUser);
+    await repo.UpdateUserAsync(id, updatedUser);
     return Results.NoContent();
 });
 
-app.MapDelete("/users/{id}", (int id, IUserRepository repo) => 
+app.MapDelete("/users/{id}", async (int id, IUserRepository repo) => 
 {
-    var user = repo.GetUserById(id);
+    var user = await repo.GetUserByIdAsync(id);
     if (user is null) return Results.NotFound();
-    repo.DeleteUser(id);
+    await repo.DeleteUserAsync(id);
     return Results.NoContent();
+});
+
+app.Map("/error", (HttpContext context) =>
+{
+    var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+    return Results.Problem(detail: exception?.Message, statusCode: 500);
 });
 
 app.Run();
@@ -65,33 +80,47 @@ public record User(int Id, string Name, string Email);
 
 public interface IUserRepository
 {
-    IEnumerable<User> GetAllUsers();
-    User GetUserById(int id);
-    void AddUser(User user);
-    void UpdateUser(int id, User updatedUser);
-    void DeleteUser(int id);
+    Task<IEnumerable<User>> GetAllUsersAsync(int page, int pageSize);
+    Task<User?> GetUserByIdAsync(int id);
+    Task AddUserAsync(User user);
+    Task UpdateUserAsync(int id, User updatedUser);
+    Task DeleteUserAsync(int id);
 }
 
 public class UserRepository : IUserRepository
 {
     private readonly List<User> _users = new();
 
-    public IEnumerable<User> GetAllUsers() => _users;
-
-    public User GetUserById(int id)
+    public Task<IEnumerable<User>> GetAllUsersAsync(int page, int pageSize)
     {
-        return _users.Find(user => user.Id == id)!;
+        var users = _users.Skip((page - 1) * pageSize).Take(pageSize);
+        return Task.FromResult(users.AsEnumerable());
     }
 
-    public void AddUser(User user) => _users.Add(user);
+    public Task<User?> GetUserByIdAsync(int id)
+    {
+        var user = _users.Find(user => user.Id == id);
+        return Task.FromResult(user);
+    }
 
-    public void UpdateUser(int id, User updatedUser)
+    public Task AddUserAsync(User user)
+    {
+        _users.Add(user);
+        return Task.CompletedTask;
+    }
+
+    public Task UpdateUserAsync(int id, User updatedUser)
     {
         var index = _users.FindIndex(user => user.Id == id);
         if (index != -1) _users[index] = updatedUser;
+        return Task.CompletedTask;
     }
 
-    public void DeleteUser(int id) => _users.RemoveAll(user => user.Id == id);
+    public Task DeleteUserAsync(int id)
+    {
+        _users.RemoveAll(user => user.Id == id);
+        return Task.CompletedTask;
+    }
 }
 
 public class UserValidator : AbstractValidator<User>
