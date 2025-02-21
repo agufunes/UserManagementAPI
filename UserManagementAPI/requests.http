@@ -1,0 +1,31 @@
+### Get all users
+GET http://localhost:5200/users
+Accept: application/json
+
+### Get a specific user by ID
+GET http://localhost:5200/users/1
+Accept: application/json
+
+### Add a new user
+POST http://localhost:5200/users
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "John Doe",
+  "email": "john.doe@example.com"
+}
+
+### Update an existing user's details
+PUT http://localhost:5200/users/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "John Smith",
+  "email": "john.smith@example.com"
+}
+
+### Delete a user by ID
+DELETE http://localhost:5200/users/1
+Accept: application/json
