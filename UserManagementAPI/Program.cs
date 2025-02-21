@@ -17,6 +17,9 @@ builder.Services.AddFluentValidationAutoValidation();
 
 var app = builder.Build();
 
+// Use the request and response logging middleware
+app.UseMiddleware<RequestResponseLoggingMiddleware>();
+
 // Global exception handling middleware
 app.UseExceptionHandler("/error");
 
